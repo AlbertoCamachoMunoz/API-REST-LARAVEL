@@ -30,4 +30,4 @@ Route::get('/', [PruebasController::class, 'testOrm']);
 
 // rutas para el entorno
 Route::post('/api/register', [UserController::class, 'register']);
-Route::get('/api/login', [UserController::class, 'login']);
+Route::post('/api/login', [UserController::class, 'login']);

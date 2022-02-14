@@ -17,11 +17,6 @@ class UserController extends Controller
         $json = $request->input('json', null);
         $params = json_decode($json);
         $params_array = json_decode($json, true);
-
-        // var_dump($params);
-        // var_dump($params_array);
-        // die();
-
         // limpiar datos
         $params_array = array_map('trim', $params_array);
         
@@ -37,12 +32,7 @@ class UserController extends Controller
     
             if($validate->fails()){
     
-                $data = array(
-                    'status'    =>  'error',
-                    'code'      =>  404,
-                    'message'   =>  'El usuario no se ha creado',
-                    'errors'   =>  $validate->errors()
-                );
+                $data = $this->create_error( 'El usuario no se ha creado',  $validate->errors(), 404);
             }
             // validacion correcta
             if(!$validate->fails()){
@@ -71,32 +61,58 @@ class UserController extends Controller
         }
 
         if(empty($params) && empty($params_array) ){
-            $data = array(
-                'status'    =>  'error',
-                'code'      =>  404,
-                'message'   =>  'Los datos enviados no son correctos'
-            );
+
+            $data = $this->create_error( 'Los datos enviados no son correctos', 'error en los datos', 404);
         }
         
-
         
-
         // crear usuario
-
-
-
 
         return response()->json($data, $data['code']);
     }
 
     public function login(Request $request){
 
-        $name = $request->input('name');
-        $surname = $request->input('surname');
+        $json = $request->input('json', null);
+        $params = json_decode($json);
+        $params_array = json_decode($json, true);
+        // limpiar datos
+        $params_array = array_map('trim', $params_array);
 
+        // validar los datos
+        if(!empty($params) && !empty($params_array) ){
+            
+            $validate = \Validator::make($params_array,[
+                'email'     =>  'required|email',
+                'password'  =>  'required',
+            ]);
+            // error en los datos
+            if($validate->fails()){
+    
+                $data = $this->create_error('El usuario no se ha Logeado', $validate->errors(), 404);
+            }
+            // datos válidos 
+            if(!$validate->fails()){
+
+                $jwtAuth = new \JwtAuth();
+                $data = $jwtAuth->signup($params->email, $params->password, $params->getToken);
+            }
+        }
+        // error en los datos
+        if(empty($params) || empty($params_array)){
+            $data = $this->create_error('El usuario no se ha Logeado', 'datos vacíos', 404);
+        }
+
+        return $data;
+
+    }
+
+    public function create_error($msg, $error, $code = 404){
         return array(
-            $name,
-            $surname
+            'status'    =>  'error',
+            'code'      =>  $code,
+            'message'   =>  $msg,
+            'errors'    =>  $error
         );
     }
 }
