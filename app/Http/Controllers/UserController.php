@@ -107,6 +107,18 @@ class UserController extends Controller
 
     }
 
+    public function update(Request $request){
+
+        $json = $request->header('Authorization', null);
+        $jwtAuth = new \JwtAuth();
+
+        $data = $jwtAuth->checkToken($json);
+
+        return $data;
+        die();
+    }
+
+
     public function create_error($msg, $error, $code = 404){
         return array(
             'status'    =>  'error',
